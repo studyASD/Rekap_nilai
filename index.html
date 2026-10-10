@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Rekap Nilai Tes Mapel</title>
+    <!-- Chart.js Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-sub: #f1f5f9;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --border-color: #e2e8f0;
+            --primary: #0284c7;
+            --primary-gradient: linear-gradient(135deg, #0284c7 0%, #4f46e5 100%);
+            --success: #10b981;
+            --danger: #f43f5e;
+            --warning: #f59e0b;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+
+        .dark-mode {
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
+            --bg-sub: #0f172a;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+            --border-color: #334155;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            padding-bottom: 40px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        /* HEADER & NAVBAR */
+        header {
+            background-color: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 12px 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .header-container {
+            max-width: 1100px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 38px;
+            height: 38px;
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .brand-title h1 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .brand-title p {
+            font-size: 11px;
+            color: var(--text-sub);
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+        }
+
+        /* BUTTONS & INPUTS */
+        .btn {
+            padding: 8px 14px;
+            border-radius: 8px;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+            width: 100%;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .btn-secondary {
+            background-color: var(--bg-sub);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn:active {
+            opacity: 0.8;
+        }
+
+        /* LAYOUT & GRID */
+        .container {
+            max-width: 1100px;
+            margin: 20px auto;
+            padding: 0 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: var(--shadow);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        @media (min-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        .stat-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .stat-title {
+            font-size: 11px;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 700;
+            margin: 6px 0;
+        }
+
+        .stat-footer {
+            font-size: 10px;
+            color: var(--text-sub);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* MAIN CONTENT LAYOUT */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 900px) {
+            .main-grid {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        /* FORM STYLES */
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            color: var(--text-main);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 9px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background-color: var(--bg-sub);
+            color: var(--text-main);
+            font-size: 13px;
+            outline: none;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        /* FILTER & CONTROLS */
+        .controls-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* TABLE */
+        .table-responsive {
+            overflow-x: auto;
+            margin-top: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        th {
+            background-color: var(--bg-sub);
+            color: var(--text-sub);
+            padding: 10px 12px;
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            text-transform: uppercase;
+            font-size: 10px;
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .badge-success { background: rgba(16, 185, 129, 0.15); color: #059669; }
+        .badge-info { background: rgba(2, 132, 199, 0.15); color: #0284c7; }
+        .badge-warning { background: rgba(245, 158, 11, 0.15); color: #d97706; }
+        .badge-danger { background: rgba(244, 63, 94, 0.15); color: #e11d48; }
+
+        .chart-container {
+            position: relative;
+            height: 250px;
+            width: 100%;
+        }
+
+        /* MODAL */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-body {
+            background: var(--bg-card);
+            border-radius: var(--radius);
+            padding: 20px;
+            max-width: 320px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-icon">🎓</div>
+                <div class="brand-title">
+                    <h1>Rekap Nilai Tes</h1>
+                    <p>Dashboard Evaluasi Mapel</p>
+                </div>
+            </div>
+            <div class="user-profile">
+                <button class="btn btn-secondary" onclick="toggleDarkMode()" id="darkBtn">🌙</button>
+                <img src="https://ui-avatars.com/api/?name=Muhammad+Kholidi&background=0284c7&color=fff" alt="Profile" class="avatar">
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+
+        <div class="card controls-bar">
+            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <label style="font-size: 12px; font-weight: 600;">Filter Mapel:</label>
+                <select id="filterSubjectSelect" onchange="renderDashboard()" class="form-control" style="width: auto;">
+                    <option value="ALL">Semua Mata Pelajaran</option>
+                </select>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 11px; color: var(--text-sub);">Target Rata-rata:</span>
+                <input type="number" id="targetGradeInput" min="0" max="100" value="85" onchange="updateTargetGrade(this.value)" class="form-control" style="width: 60px; text-align: center; padding: 4px;">
+                <div id="targetBadge" class="badge badge-info">Target: 85</div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            <div class="card stat-card">
+                <div class="stat-title">Rata-Rata Total</div>
+                <div class="stat-value" id="statTotalAvg">0</div>
+                <div class="stat-footer">
+                    <span>Predikat:</span>
+                    <b id="statOverallGrade" style="color: var(--primary);">-</b>
+                </div>
+            </div>
+
+            <div class="card stat-card">
+                <div class="stat-title">Rata-Rata Bulan Ini</div>
+                <div class="stat-value" id="statMonthAvg">0</div>
+                <div class="stat-footer">
+                    <span>Periode:</span>
+                    <b id="statMonthLabel">Bulan Ini</b>
+                </div>
+            </div>
+
+            <div class="card stat-card">
+                <div class="stat-title">Total Tes Dikuti</div>
+                <div class="stat-value" id="statTotalTests">0</div>
+                <div class="stat-footer">
+                    <span>Lulus:</span>
+                    <b id="statPassedCount" style="color: var(--success);">0 Tes</b>
+                </div>
+            </div>
+
+            <div class="card stat-card">
+                <div class="stat-title">Tertinggi / Terendah</div>
+                <div class="stat-value">
+                    <span id="statHighest" style="color: var(--success);">0</span>
+                    <span style="font-size: 14px; color: var(--text-sub);">/</span>
+                    <span id="statLowest" style="color: var(--danger);">0</span>
+                </div>
+                <div class="stat-footer">
+                    <span>Unggulan:</span>
+                    <b id="statBestSubject" style="max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">-</b>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Chart Card -->
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                    <div>
+                        <h2 style="font-size: 14px; font-weight: 700;">Grafik Tren Nilai</h2>
+                        <p style="font-size: 10px; color: var(--text-sub);">Hijau = Naik, Merah = Turun</p>
+                    </div>
+                    <span id="chartTrendStatus" class="badge badge-info">Evaluasi Tren</span>
+                </div>
+                <div class="chart-container">
+                    <canvas id="scoreChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Add Score Form -->
+            <div class="card">
+                <h2 style="font-size: 14px; font-weight: 700; margin-bottom: 12px;">+ Tambah Nilai Tes</h2>
+                <form id="addScoreForm" onsubmit="handleAddScore(event)">
+                    <div class="form-group">
+                        <label>Nama Mata Pelajaran *</label>
+                        <input type="text" id="inputSubject" required placeholder="misal: Matematika" list="subjectDatalist" class="form-control">
+                        <datalist id="subjectDatalist"></datalist>
+                    </div>
+                    <div class="form-group">
+                        <label>Nama Materi (Opsional)</label>
+                        <input type="text" id="inputTopic" placeholder="misal: Aljabar" class="form-control">
+                    </div>
+                    <div class="form-row form-group">
+                        <div>
+                            <label>Nilai (0-100) *</label>
+                            <input type="number" id="inputScore" min="0" max="100" required placeholder="85" class="form-control">
+                        </div>
+                        <div>
+                            <label>Tanggal *</label>
+                            <input type="date" id="inputDate" required class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Catatan (Opsional)</label>
+                        <input type="text" id="inputNote" placeholder="Evaluasi belajar..." class="form-control">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Simpan Data Nilai</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+                <h2 style="font-size: 14px; font-weight: 700;">Riwayat Nilai Tes</h2>
+                <div style="display: flex; gap: 6px;">
+                    <input type="text" id="tableSearch" oninput="renderDashboard()" placeholder="Cari..." class="form-control" style="width: 120px; padding: 4px 8px; font-size: 11px;">
+                    <button onclick="exportToCSV()" class="btn btn-secondary" style="padding: 4px 8px; font-size: 11px;">📥 CSV</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mapel</th>
+                            <th>Materi</th>
+                            <th>Tgl</th>
+                            <th style="text-align: center;">Nilai</th>
+                            <th>Status</th>
+                            <th style="text-align: right;">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scoreTableBody">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="customModal" class="modal">
+        <div class="modal-body">
+            <h3 id="modalTitle" style="font-size: 14px; font-weight: 700; margin-bottom: 6px;">Notifikasi</h3>
+            <p id="modalMessage" style="font-size: 12px; color: var(--text-sub); margin-bottom: 14px;">Pesan...</p>
+            <button onclick="closeModal()" class="btn btn-primary">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        let targetGrade = 85;
+
+        // Initial Data
+        let scoresData = [
+            { id: '1', subject: 'Matematika', topic: 'Aljabar', score: 72, date: '2026-09-02', note: 'Perlu latihan ulang' },
+            { id: '2', subject: 'Fisika', topic: 'Kinematika', score: 78, date: '2026-09-12', note: 'Cukup bagus' },
+            { id: '3', subject: 'Bahasa Inggris', topic: 'Grammar', score: 88, date: '2026-09-22', note: 'Vocabulary baik' },
+            { id: '4', subject: 'Matematika', topic: 'Trigonometri', score: 85, date: '2026-10-01', note: 'Naik lumayan' },
+            { id: '5', subject: 'Fisika', topic: 'Dinamika', score: 82, date: '2026-10-05', note: 'Salah di kuis' },
+            { id: '6', subject: 'Informatika', topic: 'Pemrograman', score: 95, date: '2026-10-09', note: 'Sangat paham' }
+        ];
+
+        let chartInstance = null;
+
+        window.onload = function() {
+            document.getElementById('inputDate').value = new Date().toISOString().split('T')[0];
+            renderDashboard();
+        };
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const btn = document.getElementById('darkBtn');
+            btn.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            renderChart(getFilteredData());
+        }
+
+        function getUniqueSubjects() {
+            const map = new Map();
+            scoresData.forEach(item => {
+                const norm = item.subject.trim().toLowerCase();
+                if (!map.has(norm)) map.set(norm, item.subject.trim());
+            });
+            return Array.from(map.values()).sort();
+        }
+
+        function updateSubjectDropdown() {
+            const select = document.getElementById('filterSubjectSelect');
+            const datalist = document.getElementById('subjectDatalist');
+            const curr = select.value;
+            const unique = getUniqueSubjects();
+
+            select.innerHTML = '<option value="ALL">Semua Mata Pelajaran</option>';
+            unique.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                if (sub.toLowerCase() === curr.toLowerCase()) opt.selected = true;
+                select.appendChild(opt);
+            });
+
+            datalist.innerHTML = '';
+            unique.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                datalist.appendChild(opt);
+            });
+        }
+
+        function getFilteredData() {
+            const selSub = document.getElementById('filterSubjectSelect').value;
+            const query = document.getElementById('tableSearch').value.toLowerCase().trim();
+
+            return scoresData.filter(item => {
+                const matchSub = (selSub === 'ALL') || (item.subject.trim().toLowerCase() === selSub.trim().toLowerCase());
+                const matchSearch = !query || item.subject.toLowerCase().includes(query) || (item.topic && item.topic.toLowerCase().includes(query));
+                return matchSub && matchSearch;
+            });
+        }
+
+        function renderDashboard() {
+            updateSubjectDropdown();
+            const data = getFilteredData();
+            calculateStats(data);
+            renderTable(data);
+            renderChart(data);
+            updateTargetStatus(data);
+        }
+
+        function calculateStats(data) {
+            document.getElementById('statTotalTests').textContent = data.length;
+
+            if (data.length === 0) {
+                document.getElementById('statTotalAvg').textContent = '0';
+                document.getElementById('statPassedCount').textContent = '0 Tes';
+                document.getElementById('statHighest').textContent = '0';
+                document.getElementById('statLowest').textContent = '0';
+                return;
+            }
+
+            const totalSum = data.reduce((a, b) => a + b.score, 0);
+            const avg = (totalSum / data.length).toFixed(1);
+            document.getElementById('statTotalAvg').textContent = avg;
+            document.getElementById('statOverallGrade').textContent = avg >= 85 ? 'A' : (avg >= 75 ? 'B' : 'C');
+
+            const passed = data.filter(i => i.score >= 75).length;
+            document.getElementById('statPassedCount').textContent = `${passed} Tes`;
+
+            document.getElementById('statHighest').textContent = Math.max(...data.map(i => i.score));
+            document.getElementById('statLowest').textContent = Math.min(...data.map(i => i.score));
+
+            // Month Avg
+            const now = new Date();
+            const monthData = data.filter(i => new Date(i.date).getMonth() === now.getMonth());
+            if (monthData.length > 0) {
+                const mSum = monthData.reduce((a, b) => a + b.score, 0);
+                document.getElementById('statMonthAvg').textContent = (mSum / monthData.length).toFixed(1);
+            } else {
+                document.getElementById('statMonthAvg').textContent = avg;
+            }
+        }
+
+        function updateTargetGrade(val) {
+            targetGrade = parseFloat(val) || 0;
+            renderDashboard();
+        }
+
+        function updateTargetStatus(data) {
+            const badge = document.getElementById('targetBadge');
+            if (data.length === 0) return;
+            const avg = data.reduce((a, b) => a + b.score, 0) / data.length;
+            if (avg >= targetGrade) {
+                badge.className = 'badge badge-success';
+                badge.textContent = `Tercapai (${avg.toFixed(1)})`;
+            } else {
+                badge.className = 'badge badge-danger';
+                badge.textContent = `Kurang ${(targetGrade - avg).toFixed(1)}`;
+            }
+        }
+
+        function renderChart(data) {
+            const ctx = document.getElementById('scoreChart').getContext('2d');
+            const sorted = [...data].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+            const labels = sorted.map(i => i.subject);
+            const scores = sorted.map(i => i.score);
+
+            const isDark = document.body.classList.contains('dark-mode');
+            const textColor = isDark ? '#94a3b8' : '#64748b';
+
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Nilai Tes',
+                        data: scores,
+                        borderColor: '#0284c7',
+                        borderWidth: 2,
+                        tension: 0.2,
+                        pointRadius: 5,
+                        segment: {
+                            borderColor: ctx => (ctx.p1.parsed.y >= ctx.p0.parsed.y ? '#10b981' : '#f43f5e')
+                        }
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 0, max: 100, ticks: { color: textColor } },
+                        x: { ticks: { color: textColor } }
+                    }
+                }
+            });
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('scoreTableBody');
+            tbody.innerHTML = '';
+
+            data.forEach(item => {
+                const tr = document.createElement('tr');
+                let badgeClass = item.score >= 85 ? 'badge-success' : (item.score >= 75 ? 'badge-info' : 'badge-danger');
+                
+                tr.innerHTML = `
+                    <td><b>${item.subject}</b></td>
+                    <td style="color:var(--text-sub);">${item.topic || '-'}</td>
+                    <td>${item.date.substring(5)}</td>
+                    <td style="text-align:center; font-weight:bold;">${item.score}</td>
+                    <td><span class="badge ${badgeClass}">${item.score >= 75 ? 'Lulus' : 'Remedi'}</span></td>
+                    <td style="text-align:right;">
+                        <button onclick="deleteScore('${item.id}')" style="border:none; background:none; cursor:pointer;">❌</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function handleAddScore(e) {
+            e.preventDefault();
+            let sub = document.getElementById('inputSubject').value.trim();
+            const topic = document.getElementById('inputTopic').value.trim();
+            const score = parseFloat(document.getElementById('inputScore').value);
+            const date = document.getElementById('inputDate').value;
+            const note = document.getElementById('inputNote').value.trim();
+
+            const unique = getUniqueSubjects();
+            const match = unique.find(s => s.toLowerCase() === sub.toLowerCase());
+            if (match) sub = match;
+
+            scoresData.unshift({ id: Date.now().toString(), subject: sub, topic, score, date, note });
+
+            document.getElementById('inputSubject').value = '';
+            document.getElementById('inputTopic').value = '';
+            document.getElementById('inputScore').value = '';
+
+            renderDashboard();
+            showModal('Berhasil', `Data nilai ${sub} berhasil ditambahkan!`);
+        }
+
+        function deleteScore(id) {
+            scoresData = scoresData.filter(i => i.id !== id);
+            renderDashboard();
+        }
+
+        function exportToCSV() {
+            let csv = "data:text/csv;charset=utf-8,Mapel,Materi,Tanggal,Nilai\n";
+            getFilteredData().forEach(i => {
+                csv += `"${i.subject}","${i.topic || ''}",${i.date},${i.score}\n`;
+            });
+            const uri = encodeURI(csv);
+            const link = document.createElement("a");
+            link.href = uri;
+            link.download = "Rekap_Nilai.csv";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function showModal(title, msg) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = msg;
+            document.getElementById('customModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('customModal').classList.remove('active');
+        }
+    </script>
+</body>
+</html>
